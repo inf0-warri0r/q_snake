@@ -1,6 +1,7 @@
 /*
 *Author :Tharindra Galahena
 *Project:pong game playing neural network (AI)
+*Blog   :www.inf0warri0r.blogspot.com
 *Date   :02/09/2012
 *License:
 * 
@@ -46,13 +47,12 @@ class neural{
 		int num_weights;
 		int num_hid_nodes;
 		float leaning_rate;
-		float momen;
 		layer *layers;
 		float *weights;
 		
 	public:
 		neural();
-		neural(int in, int out, int num, int hn, float lrate, float mom);		
+		neural(int in, int out, int num, int hn, float lrate);		
 		void init();	
 		int get_num_weights(); 				
 		float *get_weights();  				
@@ -66,13 +66,12 @@ class neural{
 
 neural :: neural(){
 }
-neural :: neural(int in, int out, int num, int hn, float lrate, float mom){
+neural :: neural(int in, int out, int num, int hn, float lrate){
 	num_inputs = in;
 	num_outputs = out;
 	num_layers = num;
 	num_hid_nodes = hn;
 	num_weights = 0;
-	momen = mom;
 	leaning_rate = lrate;
 	layers = (layer *)malloc(sizeof(layer) * num);
 	layers[0].num_nodes = in;
@@ -182,7 +181,7 @@ float* neural :: feed(float *inputs){
 					sum += (layers[i].chr[j]).weights[k] * inputs[k];
 				}
 			}
-			outputs[j] = sum;//convert(sum);
+			outputs[j] = sum;
 			(layers[i].chr[j]).output = outputs[j];
 		}
 		outputs[layers[i].num_nodes] = -1.0;
@@ -202,10 +201,6 @@ float neural :: get_weighted_error(int l, int in){
 void neural :: learn(float *dout){
 	int tmp = num_layers - 1;
 	for(int j = 0; j < layers[tmp].num_nodes; j++){
-		
-		//float dalta = (layers[tmp].chr[j]).output* 
-		//				(1.0 - (layers[tmp].chr[j]).output)*
-		//				(dout[j] - (layers[tmp].chr[j]).output);
 		
 		for(int k = 0; k < (layers[tmp].chr[j]).num_inputs; k++){
 			(layers[tmp].chr[j]).errors[k] = dout[0];
@@ -228,7 +223,4 @@ void neural :: learn(float *dout){
 		}
 	}
 	
-}
-float neural::convert(float input){
-	return ( 1.0 / ( 1.0 + (float)exp(-input)));
 }

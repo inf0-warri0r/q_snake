@@ -1,19 +1,20 @@
 /*
-*Author :Tharindra Galahena
+*Author :iterationsarindra Galahena
 *Project:snake game playing AI (neural netwark + Q learning)
+*Blog   :www.inf0warri0r.blogspot.com
 *Date   :02/09/2012
 *License:
 * 
-*     Copyright 2012 Tharindra Galahena
+*     Copyright 2012 iterationsarindra Galahena
 *
-* This program is free software: you can redistribute it and/or modifood_y it under the terms of 
-* the GNU General Public License as published by the Free Software Foundation, either 
-* version 3 of the License, or (at your option) any later version. This program is distributed
-* in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
-* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General 
+* iterationsis program is free software: you can redistribute it and/or modifood_y it under iterationse terms of 
+* iterationse GNU General Public License as published by iterationse Free Software Foundation, eiiterationser 
+* version 3 of iterationse License, or (at your option) any later version. iterationsis program is distributed
+* in iterationse hope iterationsat it will be useful, but WIiterationsOUT ANY WARRANTY; wiiterationsout even iterationse implied 
+* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See iterationse GNU General 
 * Public License for more details.
 *
-* You should have received a copy of the GNU General Public License along with This program. 
+* You should have received a copy of iterationse GNU General Public License along wiiterations iterationsis program. 
 * If not, see http://www.gnu.org/licenses/.
 *
 */
@@ -25,7 +26,6 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <stdio.h>
-
 
 #include "neural_net.cpp"
 
@@ -46,20 +46,18 @@ int      mx;
 int      my;
 neural *net;
 
-int food_x      =     -6;
-int food_y      =     -6;
-int sc          =      0;
-int num_layers  =      2;
-int num_inputs  =      6;
-int num_outputs =      1;
-int iter        =      0;
-int tmp         =     50;
-int th          =      0;
-
-bool p          =  false;
-bool reseting   =   true;
-bool leaning    =   true;
-int	 ex  		= 	  10;
+int food_x       =     -6;
+int food_y       =     -6;
+int sc           =      0;
+int num_layers   =      2;
+int num_inputs   =      6;
+int num_outputs  =      1;
+int tmp          =     50;
+int iterations   =      0;
+bool  pus        =  false;
+int	  ex  		 = 	   20;
+float old_q      =    0.0;
+int   fail_count =      0;
 
 void add(int x, int y){
 	sq *tmp = (sq *)malloc(sizeof(sq));
@@ -197,9 +195,8 @@ void move(){
 	snake -> y += my;
 }
 void par(float x1, float x2, float y1, float y2, float z1, float z2){
-	if(leaning) glColor3f(1.0, 0.0, 1.0);
-	else  glColor3f(1.0, 1.0, 0.0);
-	
+	glColor3f(1.0, 0.0, 1.0);
+
 	glBegin(GL_QUADS);
 	
 	glVertex3f(x1, y1, z1);
@@ -232,21 +229,25 @@ void display(void)
 }
 float reward(int sx, int sy, int sx1, int sy1){
 	if(snake -> x == food_x && snake -> y == food_y){
-		add(food_x, food_y);	
+		add(food_x, food_y);
+		fail_count = 0;	
 		sc++;
-		cout << "================= > score = " << sc << endl;
+		ex = ex / 3;
 		set_f();
 		return 1000.0;
 	}else if(tail()){
+		fail_count = 0;	
 		sc = 0;
 		start();
-		cout << "----END---- t" << endl;
-		//getchar();
+		fail_count++;
 		return -100000.0;
 	}else if(snake -> x > 18 || snake -> x < -18 || snake -> y > 18 || snake -> y < -18){
-		//cout << "----END----" << endl;
 		start();
+		fail_count++;
 		return -1000.0;
+	}
+	if(fail_count > 50){
+		ex = 20;
 	}
 	float re2 = sqrt((sx1 - food_x) * (sx1 - food_x) + (sy1 - food_y) * (sy1 - food_y)); 
 	return -re2;
@@ -386,92 +387,9 @@ float max_q(int sx, int sy, int food_x, int food_y){
 	}
 	return new_q;
 }
-/*
-float max_q2(int sx, int sy, int food_x, int food_y){
-	float new_q = 0.0;
-	int sx1 = sx + 1;
-	int sy1 = sy;
-	if(check_body(sx1, sy1)){
-		sq *last = get_last();
-		sx1 = last -> x - last -> mx;
-		sy1 = last -> y - last -> my;
-	}
-		
-	float *out1 = get_q(sx1, sy1);
-			
-	sx1 = sx - 1;
-	sy1 = sy;
-	if(check_body(sx1, sy1)){
-		sq *last = get_last();
-		sx1 = last -> x - last -> mx;
-		sy1 = last -> y - last -> my;
-	}		
-			
-	float *out2 = get_q(sx1, sy1);
-			
-	sx1 = sx;
-	sy1 = sy + 1;
-	if(check_body(sx1, sy1)){
-		sq *last = get_last();
-		sx1 = last -> x - last -> mx;
-		sy1 = last -> y - last -> my;
-	}		
-		
-	float *out3 = get_q(sx1, sy1);
-			
-	sx1 = sx;
-	sy1 = sy - 1;
-	if(check_body(sx1, sy1)){
-		sq *last = get_last();
-		sx1 = last -> x - last -> mx;
-		sy1 = last -> y - last -> my;
-	}		
-			
-	float *out4 = get_q(sx1, sy1);	
-	
-	if(out1[0] > out2[0]){
-		if(out1[0] > out3[0]){
-			if(out1[0] > out4[0]){
-				new_q = out1[0];
-				
-			}else{
-				new_q = out4[0];
-				
-			}	
-		}else{
-			if(out3[0] > out4[0]){
-				new_q = out3[0];
-				
-			}else{
-				new_q = out4[0];
-				
-			}
-		}
-	}else{
-		if(out2[0] > out3[0]){
-			if(out2[0] > out4[0]){
-				new_q = out2[0];
-				
-			}else{
-				new_q = out4[0];
-				
-			}	
-		}else{
-			if(out3[0] > out4[0]){
-				new_q = out3[0];
-				
-			}else{
-				new_q = out4[0];
-				
-			}
-		}
-	}
-	return new_q;
-}
-*/
-float old_q = 0.0;
+
 void itera(){
-	th++;
+	iterations++;
 	int sx = snake -> x;
 	int sy = snake -> y;
 		
@@ -479,8 +397,6 @@ void itera(){
 	int sx1 = sx;
 	int sy1 = sy;
 	
-	//float *out = get_q(sx1, sy1);
-		
 	float new_q;
 	if(rand() % 100 > ex){
 		new_q = max_q(sx, sy, food_x, food_y);
@@ -549,25 +465,24 @@ void itera(){
 	sy1 = snake -> y;
 	
 	float dout[1];
-	//new_q = max_q2(sx1, sy1, food_x, food_y);
 	float re = reward(sx, sy, sx1, sy1);
 	dout[0] =  re + 0.9 * new_q - old_q;
 	net -> learn(dout);
 	old_q = new_q;
 }
 void myIdleFunc(int a) {
-	if(!p){
+	if(!pus){
 		itera();
 	}
-	cout << "------------------------------------------------------" << th << " " << ex << endl;
+	cout << "iterations : " << iterations << " score : " << sc << endl;
 	glutPostRedisplay();
 	glutTimerFunc(tmp, myIdleFunc, 0);
 }
 void keyboard(unsigned char key, int x, int y)
 {
 	if((char)key == 'p'){
-		if(p) p = false;
-		else p = true;	
+		if(pus) pus = false;
+		else pus = true;	
 	}else if((char)key == 't'){
 		tmp--;
 	}else if((char)key == 'y'){
@@ -575,22 +490,11 @@ void keyboard(unsigned char key, int x, int y)
 		tmp++;
 	}else if((char)key == 's'){
 		set_f();
-	}else if((char)key == 'f'){
-		reseting = false;
-	}else if((char)key == 'r'){
-		reseting = true;
-	}else if((char)key == 'l'){
-		leaning = true;
-	}else if((char)key == 'n'){
-		leaning = false;
-	}else if((char)key == 'e'){
-		ex++;
-	}else if((char)key == 'h'){
-		ex--;
 	}else if((char)key == 'q'){
-		p = true;
+		cout << "-- SKIPING 500 STEPS --" << endl;
+		pus = true;
 		for(int i = 0; i < 500; i++) itera();
-		p = false;
+		pus = false;
 	}
 }
 
@@ -620,8 +524,18 @@ void Reshape(int w, int h)
 }
 int main(int argc, char** argv)
 {
+	
+	cout << "-----------------------------------------------" << endl;
+	cout << endl;
+	cout << "       --- SNAKE GAME A.I. - Q LEARNING ---    " << endl;
+	cout << endl;
+	cout << "created by : tharindra galahena (inf0_warri0r) " << endl;
+	cout << "blog       : www.inf0warri0r.blogspot.com      " << endl;
+	cout << endl;
+	cout << "-----------------------------------------------" << endl;
+	
 	srand(time(NULL));
-	net = new neural(num_inputs, num_outputs, num_layers, 10, 0.0000001, 0.8);
+	net = new neural(num_inputs, num_outputs, num_layers, 10, 0.0000001);
 	net -> init();
 	start();
 	set_f();
@@ -629,7 +543,7 @@ int main(int argc, char** argv)
 	glutInitDisplayMode ( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(450,450);
 	glutInitWindowPosition(500,0);
-	glutCreateWindow("snake game automation");
+	glutCreateWindow("snake game - Q learning wiiterations Neural Network");
 	init();
 	glutTimerFunc(400, myIdleFunc, 0);
 	glutReshapeFunc(Reshape);
@@ -638,4 +552,5 @@ int main(int argc, char** argv)
 	glutMainLoop();
 	return 0;
 }
+
 
