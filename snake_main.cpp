@@ -254,19 +254,6 @@ float reward(int sx, int sy, int sx1, int sy1){
 	float re2 = sqrt((sx1 - food_x) * (sx1 - food_x) + (sy1 - food_y) * (sy1 - food_y)); 
 	return -re2;
 }
-/*
-float reward2(int sx, int sy){
-	if(sx == food_x && sy == food_y){
-		return 1000.0;
-	}else if(tail2(sx, sy)){
-		return -10000.0;
-	}else if(sx > 18 || sx < -18 || sy > 18 || sy < -18){
-		return -1000.0;
-	}
-	float re = sqrt((sx - food_x) * (sx - food_x) + (sy - food_y) * (sy - food_y)); 
-	return -1.0 * re;	
-}
-* */
 float *get_q(int sx, int sy){
 	float inputs[6];
 	inputs[0] = sqrt((sx - food_x) * (sx - food_x) + (sy - food_y) * (sy - food_y)); 
