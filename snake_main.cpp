@@ -1,20 +1,20 @@
 /*
-*Author :iterationsarindra Galahena
+*Author :Tharindra Galahena
 *Project:snake game playing AI (neural netwark + Q learning)
 *Blog   :www.inf0warri0r.blogspot.com
 *Date   :02/09/2012
 *License:
 * 
-*     Copyright 2012 iterationsarindra Galahena
+*     Copyright 2012 tharindra Galahena
 *
-* iterationsis program is free software: you can redistribute it and/or modifood_y it under iterationse terms of 
-* iterationse GNU General Public License as published by iterationse Free Software Foundation, eiiterationser 
-* version 3 of iterationse License, or (at your option) any later version. iterationsis program is distributed
-* in iterationse hope iterationsat it will be useful, but WIiterationsOUT ANY WARRANTY; wiiterationsout even iterationse implied 
-* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See iterationse GNU General 
+* This program is free software: you can redistribute it and/or modifood_y it under the terms of 
+* the GNU General Public License as published by the Free Software Foundation, either 
+* version 3 of the License, or (at your option) any later version. This program is distributed
+* in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General 
 * Public License for more details.
 *
-* You should have received a copy of iterationse GNU General Public License along wiiterations iterationsis program. 
+* You should have received a copy of the GNU General Public License along with this program. 
 * If not, see http://www.gnu.org/licenses/.
 *
 */
@@ -36,7 +36,7 @@ typedef struct sq{
 	int y;
 	int mx;
 	int my;
-	struct sq *next;
+	struct sq *nexploration_ratet;
 } sq;
 
 sq *snake = NULL;
@@ -55,9 +55,11 @@ int num_outputs  =      1;
 int tmp          =     50;
 int iterations   =      0;
 bool  pus        =  false;
-int	  ex  		 = 	   40;
 float old_q      =    0.0;
 int   fail_count =      0;
+
+int	  exploration_rate  = 	     40;
+float learning_rate     = 0.0000001;
 
 void add(int x, int y){
 	sq *tmp = (sq *)malloc(sizeof(sq));
@@ -65,16 +67,16 @@ void add(int x, int y){
 	tmp -> y = y;
 	tmp -> mx = 1;
 	tmp -> my = 0;
-	tmp -> next = snake;
+	tmp -> nexploration_ratet = snake;
 	snake = tmp;
 }
 bool check_body(int x, int y){
-	if(x == snake -> next -> x && y == snake -> next -> y) return true;
+	if(x == snake -> nexploration_ratet -> x && y == snake -> nexploration_ratet -> y) return true;
 	return false;
 }
 sq *get_last(){
 	sq *p = snake;
-	while(p -> next != NULL) p = p -> next;
+	while(p -> nexploration_ratet != NULL) p = p -> nexploration_ratet;
 	return p;
 }
 void start(){
@@ -101,34 +103,34 @@ void set_f(){
 				break;		
 			}	
 			f = false;
-			p = p -> next;
+			p = p -> nexploration_ratet;
 		}	
 	}
 }
 bool tail(){
 	sq *p = snake;
-	while(p -> next != NULL){
-		if(p -> next -> x == snake -> x && p -> next -> y == snake -> y)
+	while(p -> nexploration_ratet != NULL){
+		if(p -> nexploration_ratet -> x == snake -> x && p -> nexploration_ratet -> y == snake -> y)
 			return true;	
-		p = p -> next;
+		p = p -> nexploration_ratet;
 	}
 	return false;
 }
 bool tail2(int sx, int sy){
 	sq *p = snake;
-	while(p -> next != NULL){
-		if(p -> next -> x == sx && p -> next -> y == sy)
+	while(p -> nexploration_ratet != NULL){
+		if(p -> nexploration_ratet -> x == sx && p -> nexploration_ratet -> y == sy)
 			return true;	
-		p = p -> next;
+		p = p -> nexploration_ratet;
 	}
 	return false;
 }
 float check2(int x, int y){
 	sq *p = snake;
-	while(p -> next != NULL){
-		if(p -> next -> x == x && p -> next -> y == y)
+	while(p -> nexploration_ratet != NULL){
+		if(p -> nexploration_ratet -> x == x && p -> nexploration_ratet -> y == y)
 			return -1.0;	
-		p = p -> next;
+		p = p -> nexploration_ratet;
 	}
 	if(x > 18 || x < -18 || y > 18 || y < -18) return -1.0;
 	return 1.0;
@@ -138,7 +140,7 @@ float check(int x, int y){
 	while(p != NULL){
 		if(p -> x == x && p -> y == y)
 			return -1.0;	
-		p = p -> next;
+		p = p -> nexploration_ratet;
 	}
 	if(x > 18 || x < -18 || y > 18 || y < -18) return -1.0;
 	return 1.0;
@@ -152,9 +154,9 @@ void rev(){
 		tmp -> y = p -> y;
 		tmp -> mx = -1 * p -> mx;
 		tmp -> my = -1 * p -> my;
-		tmp -> next = snake2;
+		tmp -> nexploration_ratet = snake2;
 		snake2 = tmp;
-		sq *x = p -> next;
+		sq *x = p -> nexploration_ratet;
 		free(p);
 		p = x;	
 	}
@@ -169,8 +171,8 @@ void move(){
 	int y = p -> y;
 	int tmx = p -> mx;
 	int tmy = p -> my;
-	while(p -> next != NULL){
-		sq *q = p -> next;
+	while(p -> nexploration_ratet != NULL){
+		sq *q = p -> nexploration_ratet;
 		int tmp = q -> x;
 		q -> x = x;
 		x = tmp;
@@ -187,7 +189,7 @@ void move(){
 		q -> my = tmy;
 		tmy = tmp;
 
-		p = p -> next;
+		p = p -> nexploration_ratet;
 	}
 	snake -> mx = mx;
 	snake -> my = my;
@@ -222,7 +224,7 @@ void display(void)
 	par( 9.2,  9.0, -8.7,  9.2, 0.0, 0.0);
 	while(p != NULL){
 		par((p -> x)/2.0,(p -> x)/2.0 + 0.4,(p -> y)/2.0,(p -> y)/2.0 + 0.4, 0.0, 0.0);
-		p = p -> next;	
+		p = p -> nexploration_ratet;	
 	}
 	par(food_x/2.0, food_x/2.0 + 0.4 , food_y/2.0 , food_y/2.0 + 0.4, 0.0 , 0.0);
 	glutSwapBuffers();
@@ -232,7 +234,7 @@ float reward(int sx, int sy, int sx1, int sy1){
 		add(food_x, food_y);
 		fail_count = 0;	
 		sc++;
-		ex = ex / 3;
+		exploration_rate = exploration_rate / 3;
 		set_f();
 		return 1000.0;
 	}else if(tail()){
@@ -247,11 +249,12 @@ float reward(int sx, int sy, int sx1, int sy1){
 		return -1000.0;
 	}
 	if(fail_count > 50){
-		ex = 20;
+		exploration_rate = 20;
 	}
 	float re2 = sqrt((sx1 - food_x) * (sx1 - food_x) + (sy1 - food_y) * (sy1 - food_y)); 
 	return -re2;
 }
+/*
 float reward2(int sx, int sy){
 	if(sx == food_x && sy == food_y){
 		return 1000.0;
@@ -263,6 +266,7 @@ float reward2(int sx, int sy){
 	float re = sqrt((sx - food_x) * (sx - food_x) + (sy - food_y) * (sy - food_y)); 
 	return -1.0 * re;	
 }
+* */
 float *get_q(int sx, int sy){
 	float inputs[6];
 	inputs[0] = sqrt((sx - food_x) * (sx - food_x) + (sy - food_y) * (sy - food_y)); 
@@ -398,7 +402,7 @@ void itera(){
 	int sy1 = sy;
 	
 	float new_q;
-	if(rand() % 100 > ex){
+	if(rand() % 100 > exploration_rate){
 		new_q = max_q(sx, sy, food_x, food_y);
 	}else{
 		int a = rand() % 4;
@@ -535,7 +539,7 @@ int main(int argc, char** argv)
 	cout << "-----------------------------------------------" << endl;
 	
 	srand(time(NULL));
-	net = new neural(num_inputs, num_outputs, num_layers, 10, 0.0000001);
+	net = new neural(num_inputs, num_outputs, num_layers, 10, learning_rate);
 	net -> init();
 	start();
 	set_f();
