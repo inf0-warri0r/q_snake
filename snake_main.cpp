@@ -55,7 +55,7 @@ int num_outputs  =      1;
 int tmp          =     50;
 int iterations   =      0;
 bool  pus        =  false;
-int	  ex  		 = 	   20;
+int	  ex  		 = 	   40;
 float old_q      =    0.0;
 int   fail_count =      0;
 
@@ -543,7 +543,7 @@ int main(int argc, char** argv)
 	glutInitDisplayMode ( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(450,450);
 	glutInitWindowPosition(500,0);
-	glutCreateWindow("snake game - Q learning wiiterations Neural Network");
+	glutCreateWindow("snake game - Q learning with Neural Network");
 	init();
 	glutTimerFunc(400, myIdleFunc, 0);
 	glutReshapeFunc(Reshape);
